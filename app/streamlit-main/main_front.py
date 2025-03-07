@@ -1,19 +1,39 @@
 import streamlit as st
+import configparser
 
-FASTAPI_URL = "http://localhost:8000"
-LOGIN_PAGE_URL = "http://localhost:8501"
+
+config = configparser.ConfigParser()
+config.read('/test-FastAPI/app/config.ini')
+
+# URL 가져오기
+MAIN_URL = config['STREAMLIT_URL']['MAIN_URL']
+LOGIN_URL = config['STREAMLIT_URL']['LOGIN_URL']
+RESERVE_URL = config['STREAMLIT_URL']['RESERVE_URL']
+VERIFY_URL = config['FASTAPI_URL']['VERIFY_URL']
+
+query_params = st.query_params
+jwt_token = query_params.get("access_token", [None])[0]
 
 # 페이지 제목
 st.title("HAO's TicketBox")
 
 # 상단 레이아웃 (상좌 - 티켓 리스트, 상우 - 로그인 버튼)
 col1, col2 = st.columns([5, 1])  # 두 개의 컬럼을 설정 (비율로 크기 조정)
+
 with col1:
     st.subheader("티켓 리스트 페이지입니다.")  # 티켓 리스트 페이지 문구
 with col2:
-    login_button = st.button("로그인")  # 로그인 버튼
-    if login_button:
-        st.markdown(f'<meta http-equiv="refresh" content="0; url={LOGIN_PAGE_URL}">', unsafe_allow_html=True)
+    if not jwt_token:
+        login_button = st.button("로그인")  # 로그인 버튼
+        if login_button:
+            # 로그인 페이지로 리디렉션
+            st.markdown(f'<meta http-equiv="refresh" content="0; url={LOGIN_URL}">', unsafe_allow_html=True)
+    
+    else:
+        logout_button = st.button("로그아웃")  # 로그아웃 버튼
+        if logout_button:
+            token = None
+            st.markdown(f'<meta http-equiv="refresh" content="0; url={MAIN_URL}">', unsafe_allow_html=True)
 
 # 중간 레이아웃 (티켓 리스트 영역)
 st.markdown("---")  # 구분선
