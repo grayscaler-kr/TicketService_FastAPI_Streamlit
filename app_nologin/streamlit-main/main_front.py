@@ -6,17 +6,15 @@ import numpy as np
 import os
 
 config = configparser.ConfigParser()
-config.read('/test-FastAPI/app/config.ini')
+config.read('/test-FastAPI/app_nologin/config.ini')
 
 # region URL 가져오기
 MAIN_URL = config['STREAMLIT_URL']['MAIN_URL']
-LOGIN_URL = config['STREAMLIT_URL']['LOGIN_URL']
 RESERVE_URL = config['STREAMLIT_URL']['RESERVE_URL']
-VERIFY_URL = config['FASTAPI_URL']['VERIFY_URL']
 #endregion
 
 # region image path 정보
-abs_img_path = '/test-FastAPI/app_nologin/images'
+abs_img_path = '/test-FastAPI/app_nologin/streamlit-main/images'
 top_img_path = f'{abs_img_path}/hao2.jpg'
 first_img_path = f"{abs_img_path}/2ne1.jpg"
 second_img_path = f"{abs_img_path}/jj.jpg"
@@ -57,14 +55,39 @@ with col2:
 # endregion
 
 # region
-_, col3, col4 = st.columns([1, 2, 1])
+_, col3, _ = st.columns([2, 2, 1])
 with col3:
+    login_button = st.button("예약하러가기")  # 로그인 버튼
+
     st.markdown(
-        f'<div style="background-color: #000000; padding: 10px 20px; border-radius: 10px; text-align: center; color: white; font-size: 30px; font-weight: bold; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-left: auto; margin-right: auto; width: fit-content; margin-top: 20px;">'
-        f'Select the Ticket'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
+    """
+    <style>
+    .stButton>button {
+        background-color: #000000;
+        font-size: 30px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-align: center;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        width: fit-content;
+        margin-top: 20px;
+        height: 50px; /* 높이 통일 */
+        display: flex;
+        align-items: center; /* 세로 중앙 정렬 */
+        justify-content: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+    if login_button:
+        # 로그인 페이지로 리디렉션
+        st.markdown(f'<meta http-equiv="refresh" content="0; url={RESERVE_URL}">', unsafe_allow_html=True)
+    
+    
 # endregion
 
 
@@ -93,9 +116,4 @@ if isinstance(img, np.ndarray) or isinstance(img, Image.Image):
         st.image(resized_img)
     with col6:
         st.write(f"{filename} 티켓 정보: ~~~~~~~")
-    
-        # 예약 버튼
-        if st.button("Reserve"):
-            # 예약 페이지로 이동
-            
 # endregion
