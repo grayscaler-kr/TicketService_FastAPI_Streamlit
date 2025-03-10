@@ -12,11 +12,11 @@ router = APIRouter()
 async def login(request: UserRequest):
     # ID 존재 여부 확인
     if request.username not in USER_DB:
-        raise HTTPException(detail="존재하지 않는 아이디입니다.")
+        raise HTTPException(status_code=404, detail="존재하지 않는 아이디입니다.")
     
     # 비밀번호 검증
     if USER_DB[request.username] != request.password:
-        raise HTTPException(detail="비밀번호가 틀렸습니다.")
+        raise HTTPException(status_code=401, detail="비밀번호가 틀렸습니다.")
     
     # JWT 토큰 생성
     user_data = {"sub": request.username}

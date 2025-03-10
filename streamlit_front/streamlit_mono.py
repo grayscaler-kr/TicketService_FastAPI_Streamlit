@@ -8,9 +8,6 @@ def logout():
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-if "reserve" not in st.session_state:
-    st.session_state.reserve = False
-
 # print(st.session_state.page)
 
 if st.session_state.logged_in:

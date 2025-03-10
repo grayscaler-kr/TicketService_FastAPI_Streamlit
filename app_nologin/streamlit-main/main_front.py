@@ -57,7 +57,7 @@ with col2:
 # region
 _, col3, _ = st.columns([2, 2, 1])
 with col3:
-    login_button = st.button("예약하러가기")  # 로그인 버튼
+    reserve_button = st.button("예약하러가기")  # 예약 버튼
 
     st.markdown(
     """
@@ -83,8 +83,8 @@ with col3:
     unsafe_allow_html=True,
 )
 
-    if login_button:
-        # 로그인 페이지로 리디렉션
+    if reserve_button:
+        # 예약 페이지로 리디렉션
         st.markdown(f'<meta http-equiv="refresh" content="0; url={RESERVE_URL}">', unsafe_allow_html=True)
     
     

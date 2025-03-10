@@ -1,13 +1,10 @@
 from pydantic import BaseModel, Field, field_validator
 import re
-from datetime import date
 
-class UserRequest(BaseModel):
+class LoginRequest(BaseModel):
     username: str = Field(..., min_length=5, max_length=20)  # ID 길이 제한 (5~20자)
     password: str = Field(..., min_length=8, max_length=30)  # 비밀번호 길이 제한 (8~30자)
-    name: str = Field(..., min_length=1, max_length=5)  # 이름 길이 1~5자
-    phone_number: str = Field(..., min_length=11, max_length=11)  # 전화번호는 11자 숫자
-    dob: date  # 생년월일 (날짜)
+
 
     @field_validator("username")
     @classmethod
@@ -27,26 +24,4 @@ class UserRequest(BaseModel):
             raise ValueError("비밀번호는 공백을 포함할 수 없습니다.")
         if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>?/|`~]', v):
             raise ValueError("비밀번호는 최소 1개 이상의 특수문자를 포함해야 합니다.")
-        return v
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v):
-        if not re.match(r'^[가-힣]+$', v):  # 이름은 한글만 가능
-            raise ValueError("이름은 한글만 포함해야 합니다.")
-        return v
-
-    @field_validator("phone_number")
-    @classmethod
-    def validate_phone_number(cls, v):
-        if not v.isdigit() or len(v) != 11:  # 전화번호는 숫자 11자
-            raise ValueError("전화번호는 11자리 숫자만 가능합니다.")
-        return v
-
-    @field_validator("dob")
-    @classmethod
-    def validate_dob(cls, v):
-        # 생년월일이 1900.01.01부터 현재 날짜까지만 선택 가능
-        if v > date.today() or v < date(1900, 1, 1):
-            raise ValueError("생년월일은 1900년 1월 1일부터 현재 날짜까지의 범위여야 합니다.")
         return v

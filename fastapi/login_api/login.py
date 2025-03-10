@@ -1,0 +1,52 @@
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from fastapi import FastAPI, HTTPException
+from common.token_auth import create_access_token
+from fastapi.responses import JSONResponse
+from common.login_validation import LoginRequest
+from common.db_sample import USER_DB  
+import uvicorn
+
+app = FastAPI()
+
+# 사용자 정의 예외 처리 함수
+async def http_exception_handler(request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail},
+    )
+
+# 간단한 로그인 처리 예시
+@app.post("/login")
+async def login(request: LoginRequest):
+    print(USER_DB[request.username]["password"])
+    # ID 존재 여부 확인
+    if request.username not in USER_DB:
+        raise HTTPException(status_code=404 , detail="존재하지 않는 아이디입니다.")
+    
+    # 비밀번호 검증
+    
+    if USER_DB[request.username]["password"] != request.password:
+        raise HTTPException(status_code=401, detail="비밀번호가 틀렸습니다.")
+    
+    # JWT 토큰 생성
+    user_data = {"sub": request.username}
+    access_token = create_access_token(user_data)
+
+    # JSONResponse 객체 생성
+    response_data = {"access_token": access_token}
+    response = JSONResponse(content=response_data)
+    
+    # 쿠키에 토큰 저장
+    response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="None", secure=True)
+
+    return response
+
+
+#python main.py에서 파일을 불러올 때 Uvicorn서버를 기동
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)
+
+
+
