@@ -7,15 +7,14 @@ class TicketInfo(BaseModel):
     ticket_id: int
     ticket_name: str
     ticket_description: str
-    price_levels: dict
-    max_amount_levels: dict
-    remain_amount_levels: dict
+    ticket_info: dict
 
 class ReservationRequest(BaseModel):
     account_id: str
     ticket_name: str
     amount: int
     seat_level: str
+    area_id: int
 
 # class DuplicateCheckRequest(BaseModel):
 #     name: str = Field(..., min_length=1, max_length=5)  # 이름 길이 1~5자

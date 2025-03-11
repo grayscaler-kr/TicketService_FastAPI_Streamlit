@@ -68,6 +68,8 @@ if st.button("회원가입"):
 
                             if response.status_code == 200:
                                 st.success('회원가입 성공')  # 회원가입 성공 메시지
+                                jwt_token = response.json().get("access_token")
+                                st.session_state["jwt_token"] = jwt_token
                                 # 로그인 페이지로 리다이렉션
                                 st.session_state.logged_in = True  # 로그인 상태 업데이트
                                 st.rerun()

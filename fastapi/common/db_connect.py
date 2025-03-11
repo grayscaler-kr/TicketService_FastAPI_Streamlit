@@ -109,20 +109,7 @@ if __name__ == "__main__":
 
 
     query = """
-        SELECT 
-            ta.area_id,
-            ta.level, 
-            ta.price, 
-            ta.max_amount,  
-            CAST(COALESCE(SUM(r.amount), 0) AS SIGNED) AS reserved_amount,
-            (ta.max_amount - CAST(COALESCE(SUM(r.amount), 0) AS SIGNED)) AS remaining_seats
-        FROM ticket_area ta
-        LEFT JOIN ticket_info ti ON ti.ticket_id = ta.ticket_id
-        LEFT JOIN reserve r ON ta.area_id = r.area_id
-        WHERE ta.ticket_id = %s1
-        GROUP BY ta.level, ta.price, ta.max_amount, ta.area_id;
-    """
-    result = select_query(query, (1,))
-    print(result)
-    ticket_info = {level: [area_id, price, max_amount, remain_count] for area_id, level, price, max_amount, remain_count in result}
-    print(ticket_info)
+                INSERT INTO reserve (time, amount, is_deposit, account_id, area_id)
+                VALUES (NOW(), %s, 0, %s, %s);
+                """
+    insert_query(query, (2, 'testuser', 15))

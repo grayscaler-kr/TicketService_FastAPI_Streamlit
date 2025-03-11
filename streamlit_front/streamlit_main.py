@@ -2,7 +2,16 @@ import streamlit as st
 from PIL import Image
 from streamlit_image_select import image_select
 import numpy as np
-import os
+import os, time
+from common.image_desc import ne1, iu, KimJaeJoong, Imhero
+
+
+def stream_data(filename):
+    file_dict = {"2NE1": ne1, "IU": iu, "KimJaeJoong": KimJaeJoong, "임영웅": Imhero}
+
+    for word in file_dict[filename].split(" "):
+        yield word + " "
+        time.sleep(0.02)
 
 # region image path 정보
 abs_img_path = '/test-FastAPI/streamlit_front/images'
@@ -109,5 +118,7 @@ if isinstance(img, np.ndarray) or isinstance(img, Image.Image):
     with col5:
         st.image(resized_img)
     with col6:
-        st.write(f"{filename} 티켓 정보: ~~~~~~~")
+        # 버튼 클릭 시 스트리밍 시작
+        if st.button(f"{filename} 티켓 정보"):
+            st.write_stream(stream_data(filename))
 # endregion

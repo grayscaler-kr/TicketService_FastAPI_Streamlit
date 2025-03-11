@@ -6,7 +6,6 @@ import requests
 import os
 from datetime import datetime
 import configparser
-from common.validation import validate_name, validate_phone_number
 
 config = configparser.ConfigParser()
 config.read('/test-FastAPI/streamlit_front/common/config.ini')
@@ -64,10 +63,11 @@ response = requests.get(f'{TICKET_INFO_URL}/{ticket_choice}')
 if response.status_code == 200:  
     result = response.json()
     ticket_id =  result["ticket_id"]
-    price_levels =  result["price_levels"]
-    max_amount_levels =  result["max_amount_levels"]
-    remain_amount_levels =  result["remain_amount_levels"]
+    ticket_info = result["ticket_info"]  # 순서대로 [area_id, price, max_amount, reserve_count, remaining_seats]
 
+elif response.status_code == 404:
+    st.error("정보를 불러오는 데 실패했습니다. 새로고침하여 재로그인해주세요.")
+    st.stop()
 else:
     st.error("정보를 불러오는 데 실패했습니다.")
     st.stop()
@@ -129,13 +129,13 @@ selected_seat = st.session_state.selected_areas.split('_')[0] if '_' in st.sessi
 
 col1,col2 = st.columns([1,1])
 if seat_selected:
-    remain_amount = remain_amount_levels[selected_seat[0]]
+    remain_amount = ticket_info[selected_seat[0]][-1]
 else:
     remain_amount = 0
 
 with col1:
     if seat_selected:
-        st.markdown(f"{selected_seat} 구역은 {remain_amount}좌석 남았습니다.  \n계정 당 최대 3매까지 구매 가능합니다.(티켓별로 적용)")
+        st.markdown(f"{selected_seat} 구역은 {remain_amount}좌석 남았습니다.  \n티켓 당 최대 3매까지 구매 가능합니다.(계정별로 적용)")
     else:
         st.markdown("선택된 구역이 없습니다.")
 
@@ -157,7 +157,7 @@ with col2:
         )
 
 # 가격 계산
-total_price = price_levels[selected_seat[0]] * num_people if seat_selected else 0
+total_price = ticket_info[selected_seat[0]][1] * num_people if seat_selected else 0
 
 # 가격을 `st.metric`으로 강조
 if seat_selected:
@@ -166,16 +166,18 @@ if seat_selected:
 
 # 예약 신청 버튼
 if st.button("예약 신청", disabled=not seat_selected):  # 좌석이 선택되지 않으면 비활성화
+    # print(type(account_id), type(ticket_choice), type(num_people), type(selected_seat[0]), type(ticket_info[selected_seat[0]][0]))
     reservation_data = {
         "account_id": account_id,
-        "ticket": ticket_choice,
-        "ticket_desc": 'test',
-        "num_people": num_people,
+        "ticket_name": ticket_choice,
+        "amount": num_people,
         "seat_level": selected_seat[0],
-        "total_price": total_price
+        "area_id": ticket_info[selected_seat[0]][0]
     }
-    response = requests.post(VERIFY_URL, json=reservation_data, headers=headers)
+    response = requests.post(RESERVE_URL, json=reservation_data)
     if response.status_code == 200:
         st.success("예약이 신청되었습니다!")
+    elif response.status_code == 404:
+        st.error(f"티켓 당 3장까지 예매 가능합니다. {ticket_choice} 티켓은 이미 예매하신 이력이 있습니다.")
     else:
         st.error("예약 신청 실패. 다시 시도해주세요.")

@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi import Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from common.reservation_validation import TicketInfo, ReservationRequest
-from common.db_connect import select_query, insert_query, update_query
+from common.db_connect import select_query, insert_query
 from common.token_auth import decode_access_token
 
 import uvicorn
@@ -19,9 +19,6 @@ port = int(os.getenv("PORT", 8003))
 app = FastAPI()
 # HTTPBearer 인스턴스 생성 (Bearer 토큰 사용)
 security = HTTPBearer()
-
-# 최대 예매 가능 개수
-max_reservation = 5
 
 
 # 사용자 정의 예외 처리 함수
@@ -88,15 +85,15 @@ def read_ticket_info(ticket_name: str):
     """
     result = select_query(query, (ticket_id,))
 
-    ticket_info = {level: [area_id, price, max_amount, remain_count] for area_id, level, price, max_amount, remain_count in result}
+    # {'V': [1, 300000, 5, 5, 0], 'R': [2, 200000, 5, 0, 5], 'S': [3, 150000, 5, 0, 5], 'A': [4, 100000, 5, 0, 5]}
+    # 순서대로 [area_id, price, max_amount, reserve_count, remaining_seats]
+    ticket_info = {level: [area_id, price, max_amount, reserve_count,remaining_seats] for area_id, level, price, max_amount, reserve_count, remaining_seats in result}
 
     return TicketInfo(
         ticket_id=ticket_id,
         ticket_name=ticket_name,
         ticket_description=ticket_description,
-        price_levels=price_levels,
-        max_amount_levels = max_amount_levels,
-        remain_amount_levels=remain_amount_levels
+        ticket_info = ticket_info
     )
 
 
@@ -105,24 +102,26 @@ def read_ticket_info(ticket_name: str):
 def reserve_ticket(request: ReservationRequest):
 
     query = """
-        SELECT r.account_id, t.ticket_id, SUM(r.amount) AS total_reserved
+        SELECT r.account_id, t.ticket_id, CAST(SUM(r.amount) AS SIGNED) AS total_reserved
         FROM reserve r
         JOIN ticket_area ta ON r.area_id = ta.area_id
         JOIN ticket_info t ON ta.ticket_id = t.ticket_id
-        WHERE r.account_id = %s AND t.ticket_id = %s
+        WHERE r.account_id = %s AND t.name = %s
         GROUP BY r.account_id, t.ticket_id;
     """
-    # 사용자 정보 저장
-    USER_DB[user_id]["name"] = request.name
-    USER_DB[user_id]["phone_number"] = request.phone_number
-    USER_DB[user_id]["birth"] = request.birth
-    USER_DB[user_id]["ticket_name"].append(request.ticket)
-    USER_DB[user_id]["seat_level"].append(request.seat_level)
-    USER_DB[user_id]["num_people"].append(request.num_people)
-    USER_DB[user_id]["total_price"].append(request.total_price)
-    USER_DB[user_id]["ticket_desc"].append(request.ticket_desc)
-    
-    
+    result = select_query(query, (request.account_id, request.ticket_name))
+    if result != []:
+        print(result)
+        print(request.amount)
+        if int(result[0][2]) >=3 or int(result[0][2])+request.amount > 3:
+            raise HTTPException(status_code=404, detail="3장까지 예매 가능합니다.")
+
+    query = """
+            INSERT INTO reserve (time, amount, is_deposit, account_id, area_id)
+            VALUES (NOW(), %s, 0, %s, %s);
+            """
+    insert_query(query, (request.amount, request.account_id, request.area_id))
+        
     return {"message": "예약이 완료되었습니다!"}
 
 # python main.py에서 파일을 불러올 때 Uvicorn 서버를 기동

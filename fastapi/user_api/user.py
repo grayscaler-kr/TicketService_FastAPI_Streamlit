@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../'
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from common.user_validation import UserRequest
+from common.token_auth import create_access_token
 from common.db_connect import select_query, insert_query
 
 import uvicorn
@@ -46,22 +47,24 @@ def join_user(request: UserRequest):
         elif row[3] == request.phone_number:
             raise HTTPException(status_code=411, detail="이미 존재하는 전화번호입니다.")
 
-# insert_data('account', ['username', 'name', 'password', 'phone', 'birthdate'],
-#             ['testuser', '김김김', 'test@1234', '01011112222', '2000-01-01'])
-       
-
+    
     # 사용자 저장
     query = "INSERT INTO account (account_id, name, password, phone_number, birth) VALUES (%s, %s, %s, %s, %s)"
     parms = (request.username, request.name, request.password, request.phone_number, request.birth)
     insert_query(query, parms)
+
+    # JWT 토큰 생성
+    user_data = {"sub": request.username}
+    access_token = create_access_token(user_data)
+
+    # JSONResponse 객체 생성
+    response_data = {"access_token": access_token}
+    response = JSONResponse(content=response_data)
     
-    return {
-        "status_code": 0,
-        "data": {
-            "username": request.username,
-        },
-        "message": "signup_success"
-    }
+    # 쿠키에 토큰 저장
+    response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="None", secure=True)
+    
+    return response
 #python main.py에서 파일을 불러올 때 Uvicorn서버를 기동
 if __name__ == "__main__":
     uvicorn.run(app, host=host, port=port)
