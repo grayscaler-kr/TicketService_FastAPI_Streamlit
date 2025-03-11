@@ -12,7 +12,7 @@ config = configparser.ConfigParser()
 config.read('/test-FastAPI/streamlit_front/common/config.ini')
 
 # URL 가져오기
-USER_URL= os.getenv("FAST_USER", config['FASTAPI_URL']['USER_URL'])
+USER_URL= os.getenv("USER_URL", config['FASTAPI_URL']['USER_URL'])
 
 # 회원가입 페이지
 st.title("회원가입 페이지")
