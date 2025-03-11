@@ -14,8 +14,7 @@ config.read('/test-FastAPI/streamlit_front/common/config.ini')
 
 # URL 가져오기
 # Fastapi login url
-LOGIN_URL = config['FASTAPI_URL']['LOGIN_URL']
-
+LOGIN_URL = os.getenv("FAST_LOGIN", config['FASTAPI_URL']['LOGIN_URL'])
 
 # 로그인 폼
 st.title("로그인 페이지")

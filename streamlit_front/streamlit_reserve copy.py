@@ -12,9 +12,9 @@ config = configparser.ConfigParser()
 config.read('/test-FastAPI/streamlit_front/common/config.ini')
 
 # URL 가져오기
-RESERVE_URL= os.getenv("FAST_RESERVE", config['FASTAPI_URL']['RESERVE_URL'])
-VERIFY_URL= os.getenv("FAST_RESERVE_VERIFY", config['FASTAPI_URL']['VERIFY_URL'])
-TICKET_INFO_URL= os.getenv("FAST_RESERVE_TICKET", config['FASTAPI_URL']['TICKET_INFO_URL'])
+RESERVE_URL = config['FASTAPI_URL']['RESERVE_URL']
+VERIFY_URL = config['FASTAPI_URL']['VERIFY_URL']
+CHECK_DUPLICATE_URL = config['FASTAPI_URL']['CHECK_DUPLICATE_URL']
 
 #region 파일 리스트 및 이름
 image_list = os.listdir("/test-FastAPI/streamlit_front/images/ticket")
@@ -29,50 +29,73 @@ if "selected_image" not in st.session_state:
     st.session_state.selected_image = ticket_list[0]
 # endregion
 
+
+
 # page start
 st.title("티켓 예약 시스템")
 
 # 신청자 정보 입력
 st.subheader("신청자 정보 입력")
+use_existing_info = st.checkbox("가입자 정보와 일치")
+get_user_info = False
 jwt_token = st.session_state.get("jwt_token")
 headers = {"Authorization": f"Bearer {jwt_token}"}
 
 # 사용자 정보를 가져와서 기본 값으로 채워넣기
-
-# 현재 로그인된 사용자 토큰 가져오기
-response = requests.post(VERIFY_URL, headers=headers)
-if response.status_code == 200:
-    result = response.json()
-    name = result["name"]
-    phone_number = result["phone_number"]
-    birth = result["birth"]
-    account_id = result["account_id"]
-    # 사용자가 정보를 수정할 수 없도록 비활성화
-    st.text_input("이름", value=name, disabled=True)
-    st.text_input("전화번호", value=phone_number, disabled=True)
-    st.date_input("생년월일", value=datetime.strptime(birth, "%Y-%m-%d"), disabled=True)
-
+if use_existing_info:
+    # 현재 로그인된 사용자 토큰 가져오기
+    response = requests.post(VERIFY_URL, headers=headers)
+    if response.status_code == 200:
+        result = response.json()
+        if result["user_info_matched"]:
+            get_user_info = True
+            # 일치하는 사용자 정보가 있을 때
+            name = result["name"]
+            phone_number = result["phone_number"]
+            birth = result["birth"]
+            # 사용자가 정보를 수정할 수 없도록 비활성화
+            st.text_input("이름", value=name, disabled=True)
+            st.text_input("전화번호", value=phone_number, disabled=True)
+            st.date_input("생년월일", value=datetime.strptime(birth, "%Y-%m-%d"), disabled=True)
+        else:
+            st.error("일치 x")
+    else:
+        st.error("정보를 불러오는 데 실패했습니다.")
 else:
-    st.error("정보를 불러오는 데 실패했습니다.")
-    st.stop()
+    # 직접 입력 받기
+    name = st.text_input("이름 (5글자 이내, 한국어만)")
+    phone_number = st.text_input("전화번호 (11자, 숫자만)")
+    birth = st.date_input("생년월일", min_value=datetime(1900,1,1), max_value=datetime.today())
+    
+
+# 중복 신청 확인
+if st.button("중복 확인", disabled=get_user_info):
+    valid_result = validate_name(name)
+    if valid_result:
+        st.warning(valid_result[1])
+    else:
+        valid_result = validate_phone_number(phone_number)
+        if valid_result:
+            st.warning(valid_result[1])
+        else:
+            response = requests.post(CHECK_DUPLICATE_URL, json={"name": name, "phone_number": phone_number, "birth": str(birth)}, headers=headers)
+            if response.status_code == 200:
+                result = response.json()
+                if result["duplicate"]:
+                    st.error("이미 신청된 정보입니다!")
+                else:
+                    st.success("신청 가능합니다.")
+            else:
+                st.error("서버 오류 발생. 다시 시도해주세요.")
 
 # 티켓 선택
 st.subheader("티켓 선택")
 ticket_choice = st.selectbox("티켓 선택", ticket_list, index=ticket_list.index(st.session_state.selected_image))
 # st.image(ticket_options[ticket_choice], caption=ticket_choice, use_container_width=True)
-response = requests.get(f'{TICKET_INFO_URL}/{ticket_choice}')
-if response.status_code == 200:  
-    result = response.json()
-    ticket_id =  result["ticket_id"]
-    price_levels =  result["price_levels"]
-    max_amount_levels =  result["max_amount_levels"]
-    remain_amount_levels =  result["remain_amount_levels"]
 
-else:
-    st.error("정보를 불러오는 데 실패했습니다.")
-    st.stop()
+# 좌석 배열 정의 (간단한 5x5 예제)
+rows = ["VIP", "R", "S", "A",]
 
-#region
 # 세션 상태에 선택된 좌석 저장
 if "selected_areas" not in st.session_state:
     st.session_state.selected_areas = 'no'
@@ -114,50 +137,37 @@ with col7:
     area_button("A석", "A석_1", col7)
 with col8:
     area_button("A석", "A석_2", col8)
-#endregion
+
 
 # 선택된 영역 표시
-st.subheader("선택된 구역")
+st.subheader("선택된 좌석")
+
+if st.session_state.selected_areas == 'no':
+    st.write("선택된 좌석이 없습니다.")
+else: st.write(st.session_state.selected_areas)
+
+
 
 # 좌석이 선택되지 않은 경우 버튼 비활성화
 seat_selected = st.session_state.selected_areas != "no"
 
-
 # 선택된 좌석 확인
 selected_seat = st.session_state.selected_areas.split('_')[0] if '_' in st.session_state.selected_areas else st.session_state.selected_areas
-# ticket_prices = {"VIP석": 300000, "R석": 200000, "S석": 150000, "A석": 100000}
+ticket_prices = {"VIP석": 300000, "R석": 200000, "S석": 150000, "A석": 100000}
 
-col1,col2 = st.columns([1,1])
-if seat_selected:
-    remain_amount = remain_amount_levels[selected_seat[0]]
-else:
-    remain_amount = 0
 
-with col1:
-    if seat_selected:
-        st.markdown(f"{selected_seat} 구역은 {remain_amount}좌석 남았습니다.  \n계정 당 최대 3매까지 구매 가능합니다.(티켓별로 적용)")
-    else:
-        st.markdown("선택된 구역이 없습니다.")
-
-with col2:
-    if seat_selected:
-        if remain_amount > 3:
-            remain_amount = 3
-        elif remain_amount == 0:
-            st.warning("매진입니다. 예약할 수 없습니다.")
-            st.stop()
-        # 인원 선택 부분
-        num_people = st.number_input(
-            "인원 선택",
-            min_value=1,
-            max_value=remain_amount,
-            step=1,
-            disabled=not seat_selected,  # 좌석이 선택되지 않으면 비활성화
-            label_visibility="collapsed"  # 라벨 숨기기
-        )
+# 인원 선택 부분
+num_people = st.number_input(
+    "인원 선택",
+    min_value=1,
+    max_value=5,
+    step=1,
+    disabled=not seat_selected,  # 좌석이 선택되지 않으면 비활성화
+    label_visibility="collapsed"  # 라벨 숨기기
+)
 
 # 가격 계산
-total_price = price_levels[selected_seat[0]] * num_people if seat_selected else 0
+total_price = ticket_prices[selected_seat] * num_people if seat_selected else 0
 
 # 가격을 `st.metric`으로 강조
 if seat_selected:
@@ -167,7 +177,9 @@ if seat_selected:
 # 예약 신청 버튼
 if st.button("예약 신청", disabled=not seat_selected):  # 좌석이 선택되지 않으면 비활성화
     reservation_data = {
-        "account_id": account_id,
+        "name": name,
+        "phone_number": phone_number,
+        "birth": str(birth),
         "ticket": ticket_choice,
         "ticket_desc": 'test',
         "num_people": num_people,

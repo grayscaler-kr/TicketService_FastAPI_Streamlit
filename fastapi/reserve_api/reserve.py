@@ -5,16 +5,24 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi import Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from reservation_validation import DuplicateCheckRequest, ReservationRequest
-from common.db_sample import USER_DB
+from common.reservation_validation import TicketInfo, ReservationRequest
+from common.db_connect import select_query, insert_query, update_query
 from common.token_auth import decode_access_token
 
 import uvicorn
 
-app = FastAPI()
+# 환경 변수로 호스트와 포트를 설정
+host = os.getenv("HOST", "0.0.0.0")
+port = int(os.getenv("PORT", 8003))
 
+
+app = FastAPI()
 # HTTPBearer 인스턴스 생성 (Bearer 토큰 사용)
 security = HTTPBearer()
+
+# 최대 예매 가능 개수
+max_reservation = 5
+
 
 # 사용자 정의 예외 처리 함수
 async def http_exception_handler(request, exc: HTTPException):
@@ -33,40 +41,90 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Security(securi
     
     return user_info  # 디코딩된 사용자 정보 반환
 
-# 중복 신청 확인 API
-@app.post("/check_duplicate")
-def check_duplicate(request: DuplicateCheckRequest, token: str = Depends(get_current_user)):
-    if (request.name in USER_DB["name"] and 
-        request.phone in USER_DB["phone_number"] and 
-        request.dob in USER_DB["dob"]):
-        return {"duplicate": True}
-    return {"duplicate": False}
 
 @app.post("/verify_user_info")
 def verify_user_info(user_info: dict = Depends(get_current_user)):  # 이미 디코딩된 값을 받음
-    user_id = user_info.get("sub")  # 토큰에서 가져온 id
-    if user_id not in USER_DB:
-        return {"user_info_matched": False}
+    account_id = user_info.get("sub")  # 토큰에서 가져온 id
+    query = "SELECT name, phone_number, birth FROM account WHERE account_id = %s"
+    user_data = select_query(query, (account_id,))
 
-    user_data = USER_DB[user_id]  # 해당 ID의 사용자 정보 가져오기
+    if user_data:
+        return {
+            "name": user_data[0][0],
+            "phone_number": user_data[0][1],
+            "birth": user_data[0][2],
+            "account_id": account_id
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Account not found")
 
-    return {
-        "user_info_matched": True,
-        "name": user_data["name"],
-        "phone_number": user_data["phone_number"],
-        "dob": user_data["dob"],
-        "ticket_name": user_data["ticket_name"]
-    }
+
+
+@app.get("/ticket/{ticket_name}", response_model=TicketInfo)
+def read_ticket_info(ticket_name: str):
+    query = "SELECT ticket_id, description FROM ticket_info WHERE name = %s"
+    ticket_data = select_query(query, (ticket_name,))
+
+    if ticket_data is None: # 발생할 일이 없음
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    ticket_id, ticket_description = ticket_data[0]
+
+    #  해당 티켓의 좌석별 가격, 총 좌석, 예약 좌석, 잔여 좌석
+    # [('V', 300000, 5, 1, 4), ('R', 200000, 5, 0, 5), ('S', 150000, 5, 0, 5), ('A', 100000, 5, 0, 5)]
+    query = """
+        SELECT 
+            ta.area_id,
+            ta.level, 
+            ta.price, 
+            ta.max_amount,  
+            CAST(COALESCE(SUM(r.amount), 0) AS SIGNED) AS reserved_amount,
+            (ta.max_amount - CAST(COALESCE(SUM(r.amount), 0) AS SIGNED)) AS remaining_seats
+        FROM ticket_area ta
+        LEFT JOIN ticket_info ti ON ti.ticket_id = ta.ticket_id
+        LEFT JOIN reserve r ON ta.area_id = r.area_id
+        WHERE ta.ticket_id = %s
+        GROUP BY ta.level, ta.price, ta.max_amount, ta.area_id;
+    """
+    result = select_query(query, (ticket_id,))
+
+    ticket_info = {level: [area_id, price, max_amount, remain_count] for area_id, level, price, max_amount, remain_count in result}
+
+    return TicketInfo(
+        ticket_id=ticket_id,
+        ticket_name=ticket_name,
+        ticket_description=ticket_description,
+        price_levels=price_levels,
+        max_amount_levels = max_amount_levels,
+        remain_amount_levels=remain_amount_levels
+    )
+
 
 # 예약 신청 API
 @app.post("/reserve")
-def reserve_ticket(request: ReservationRequest, token: str = Depends(get_current_user)):
-    USER_DB["name"].append(request.name)
-    USER_DB["phone_number"].append(request.phone)
-    USER_DB["dob"].append(request.birth_date)
-    USER_DB["ticket_name"].append(request.ticket)
+def reserve_ticket(request: ReservationRequest):
+
+    query = """
+        SELECT r.account_id, t.ticket_id, SUM(r.amount) AS total_reserved
+        FROM reserve r
+        JOIN ticket_area ta ON r.area_id = ta.area_id
+        JOIN ticket_info t ON ta.ticket_id = t.ticket_id
+        WHERE r.account_id = %s AND t.ticket_id = %s
+        GROUP BY r.account_id, t.ticket_id;
+    """
+    # 사용자 정보 저장
+    USER_DB[user_id]["name"] = request.name
+    USER_DB[user_id]["phone_number"] = request.phone_number
+    USER_DB[user_id]["birth"] = request.birth
+    USER_DB[user_id]["ticket_name"].append(request.ticket)
+    USER_DB[user_id]["seat_level"].append(request.seat_level)
+    USER_DB[user_id]["num_people"].append(request.num_people)
+    USER_DB[user_id]["total_price"].append(request.total_price)
+    USER_DB[user_id]["ticket_desc"].append(request.ticket_desc)
+    
+    
     return {"message": "예약이 완료되었습니다!"}
 
 # python main.py에서 파일을 불러올 때 Uvicorn 서버를 기동
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8003)
+    uvicorn.run(app, host=host, port=port)

@@ -1,9 +1,11 @@
 import streamlit as st
 
+
 def logout():
     # if st.button("Log out"):
     st.session_state.logged_in = False
     st.rerun()
+
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False

@@ -29,7 +29,6 @@ def validate_password_match(password, password_confirm):
     return None
 
 def validate_name(name):
-    message = ""
     if len(name) < 1 or len(name) > 5:
         return "이름은 1~5자 이내로 입력해주세요."
     if not re.match(r'^[가-힣]{1,5}$', name):

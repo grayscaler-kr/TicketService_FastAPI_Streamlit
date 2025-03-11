@@ -1,13 +1,13 @@
 from pydantic import BaseModel, Field, field_validator
 import re
-from datetime import date
+from datetime import date, datetime
 
 class UserRequest(BaseModel):
     username: str = Field(..., min_length=5, max_length=20)  # ID 길이 제한 (5~20자)
     password: str = Field(..., min_length=8, max_length=30)  # 비밀번호 길이 제한 (8~30자)
     name: str = Field(..., min_length=1, max_length=5)  # 이름 길이 1~5자
     phone_number: str = Field(..., min_length=11, max_length=11)  # 전화번호는 11자 숫자
-    dob: date  # 생년월일 (날짜)
+    birth: str  # 생년월일 (날짜)
 
     @field_validator("username")
     @classmethod
@@ -43,10 +43,11 @@ class UserRequest(BaseModel):
             raise ValueError("전화번호는 11자리 숫자만 가능합니다.")
         return v
 
-    @field_validator("dob")
+    @field_validator("birth")
     @classmethod
-    def validate_dob(cls, v):
+    def validate_birth(cls, v):
+        v_date = datetime.strptime(v, "%Y-%m-%d").date()
         # 생년월일이 1900.01.01부터 현재 날짜까지만 선택 가능
-        if v > date.today() or v < date(1900, 1, 1):
+        if v_date > date.today() or v_date < date(1900, 1, 1):
             raise ValueError("생년월일은 1900년 1월 1일부터 현재 날짜까지의 범위여야 합니다.")
         return v

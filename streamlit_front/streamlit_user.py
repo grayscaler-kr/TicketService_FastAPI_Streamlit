@@ -12,7 +12,7 @@ config = configparser.ConfigParser()
 config.read('/test-FastAPI/streamlit_front/common/config.ini')
 
 # URL 가져오기
-USER_URL = config['FASTAPI_URL']['USER_URL']
+USER_URL= os.getenv("FAST_USER", config['FASTAPI_URL']['USER_URL'])
 
 # 회원가입 페이지
 st.title("회원가입 페이지")
@@ -20,7 +20,7 @@ st.title("회원가입 페이지")
 # 입력 값
 name = st.text_input("이름")
 phone_number = st.text_input("전화번호")
-dob = st.date_input("생년월일", min_value=datetime(1900,1,1), max_value=datetime.today())
+birth = st.date_input("생년월일", min_value=datetime(1900,1,1), max_value=datetime.today())
 username = st.text_input("아이디")
 password = st.text_input("비밀번호", type="password")
 password_confirm = st.text_input("비밀번호 확인", type="password")
@@ -29,7 +29,7 @@ password_confirm = st.text_input("비밀번호 확인", type="password")
 # 가입 버튼
 if st.button("회원가입"):
     # 입력 값 확인
-    if username and password and password_confirm and name and phone_number and dob:
+    if username and password and password_confirm and name and phone_number and birth:
         # 이름 유효성 검사
         name_error = validate_name(name)
         if name_error:
@@ -60,7 +60,7 @@ if st.button("회원가입"):
                                 "password": password,
                                 "name": name,
                                 "phone_number": phone_number,
-                                "dob": dob.strftime("%Y-%m-%d")  # 생년월일 포맷팅
+                                "birth": birth.strftime("%Y-%m-%d")  # 생년월일 포맷팅
                             }
 
                             # POST 요청을 보내고 응답 받기
