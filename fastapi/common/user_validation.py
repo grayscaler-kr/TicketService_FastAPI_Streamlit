@@ -3,17 +3,26 @@ import re
 from datetime import date, datetime
 
 class UserRequest(BaseModel):
-    username: str = Field(..., min_length=5, max_length=20)  # ID 길이 제한 (5~20자)
+    username: str = Field(..., min_length=5, max_length=50)  # ID 길이 제한 (5~50자)
     password: str = Field(..., min_length=8, max_length=30)  # 비밀번호 길이 제한 (8~30자)
     name: str = Field(..., min_length=1, max_length=5)  # 이름 길이 1~5자
     phone_number: str = Field(..., min_length=11, max_length=11)  # 전화번호는 11자 숫자
     birth: str  # 생년월일 (날짜)
 
+    # 이메일 x
+    # @field_validator("username")
+    # @classmethod
+    # def validate_username(cls, v):
+    #     if not v.isalnum():  # 영문+숫자로만 이루어져야 함
+    #         raise ValueError("ID는 영문과 숫자로만 이루어져야 합니다.")
+    #     return v
+
+    # 이메일 o
     @field_validator("username")
     @classmethod
-    def validate_username(cls, v):
-        if not v.isalnum():  # 영문+숫자로만 이루어져야 함
-            raise ValueError("ID는 영문과 숫자로만 이루어져야 합니다.")
+    def validate_useremail(cls, v):
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", v):
+            raise ValueError("이메일만 입력 가능합니다.")
         return v
 
     @field_validator("password")

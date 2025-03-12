@@ -1,11 +1,17 @@
 import re
 
-# 아이디 유효성 검사 함수
-def validate_username(username):
-    if not username.isalnum():  # 영문과 숫자로만 이루어져야 함
-        return "아이디는 영문과 숫자로만 이루어져야 합니다."
-    if len(username) < 5 or len(username) > 20:
-        return "아이디는 5자 이상 20자 이하이어야 합니다."
+# # 아이디 유효성 검사 함수 -> 변경됨
+# def validate_username(username):
+#     if not username.isalnum():  # 영문과 숫자로만 이루어져야 함
+#         return "아이디는 영문과 숫자로만 이루어져야 합니다."
+#     if len(username) < 5 or len(username) > 20:
+#         return "아이디는 5자 이상 20자 이하이어야 합니다."
+#     return None
+
+# 아이디 유효성 검사 함수 -> 변경됨
+def validate_useremail(useremail):
+    if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", useremail):
+        return "이메일만 입력 가능합니다."
     return None
 
 # 비밀번호 유효성 검사 함수

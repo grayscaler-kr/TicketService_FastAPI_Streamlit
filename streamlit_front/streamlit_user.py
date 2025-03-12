@@ -5,11 +5,11 @@ import configparser
 import streamlit as st
 import requests
 from datetime import datetime
-from common.validation import validate_name, validate_phone_number, validate_username, validate_password, validate_password_match
+from common.validation import validate_name, validate_phone_number, validate_useremail, validate_password, validate_password_match
 
 # Config 읽기
 config = configparser.ConfigParser()
-config.read('/test-FastAPI/streamlit_front/common/config.ini')
+config.read('/TicketService_FastAPI_Streamlit/streamlit_front/common/config.ini')
 
 # URL 가져오기
 USER_URL= os.getenv("USER_URL", config['FASTAPI_URL']['USER_URL'])
@@ -40,7 +40,7 @@ if st.button("회원가입"):
             if phone_number_error:
                 st.error(phone_number_error)
             else:
-                username_error = validate_username(username)
+                username_error = validate_useremail(username)
                 if username_error:
                     st.warning(username_error)
                 # 비밀번호 형식 및 일치 여부 검사

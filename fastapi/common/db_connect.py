@@ -5,7 +5,7 @@ import os
 # config 파일에서 DB 정보 가져오기
 def get_db_config():
     config = configparser.ConfigParser()
-    config.read('/test-FastAPI/fastapi/common/db.ini')
+    config.read('/TicketService_FastAPI_Streamlit/fastapi/common/db.ini')
 
     # URL 가져오기
     IP = os.getenv("DB_IP", config['MYSQL']['IP'])

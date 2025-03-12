@@ -14,7 +14,7 @@ def stream_data(filename):
         time.sleep(0.02)
 
 # region image path 정보
-abs_img_path = '/test-FastAPI/streamlit_front/images'
+abs_img_path = '/TicketService_FastAPI_Streamlit/streamlit_front/images'
 image_list = os.listdir(f"{abs_img_path}/ticket")
 image_list_path = sorted(os.path.join(f"{abs_img_path}/ticket", file_name) for file_name in image_list) # image list contain .jpg
 ticket_list = sorted([i.split(".")[0] for i in image_list]) # no .jpg

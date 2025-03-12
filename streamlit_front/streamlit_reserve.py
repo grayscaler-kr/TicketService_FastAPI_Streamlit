@@ -8,7 +8,7 @@ from datetime import datetime
 import configparser
 
 config = configparser.ConfigParser()
-config.read('/test-FastAPI/streamlit_front/common/config.ini')
+config.read('/TicketService_FastAPI_Streamlit/streamlit_front/common/config.ini')
 
 # URL 가져오기
 RESERVE_URL= os.getenv("RESERVE_URL", config['FASTAPI_URL']['RESERVE_URL'])
@@ -16,7 +16,7 @@ VERIFY_URL= os.getenv("VERIFY_URL", config['FASTAPI_URL']['VERIFY_URL'])
 TICKET_INFO_URL= os.getenv("TICKET_INFO_URL", config['FASTAPI_URL']['TICKET_INFO_URL'])
 
 #region 파일 리스트 및 이름
-image_list = os.listdir("/test-FastAPI/streamlit_front/images/ticket")
+image_list = os.listdir("/TicketService_FastAPI_Streamlit/streamlit_front/images/ticket")
 ticket_list = sorted([i.split(".")[0] for i in image_list])
 #endregion
 

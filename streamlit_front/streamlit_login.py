@@ -4,13 +4,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../'
 import streamlit as st
 import requests
 import configparser
-from common.validation import validate_username, validate_password
+from common.validation import validate_useremail, validate_password
 
 if st.session_state.logged_in == False:
     st.error("로그인하세요.")
 
 config = configparser.ConfigParser()
-config.read('/test-FastAPI/streamlit_front/common/config.ini')
+config.read('/TicketService_FastAPI_Streamlit/streamlit_front/common/config.ini')
 
 # URL 가져오기
 # Fastapi login url
@@ -29,7 +29,7 @@ if st.button("Login"):
         st.warning("아이디와 비밀번호를 입력해 주세요.")
     else:
         # 아이디 유효성 검사
-        username_error = validate_username(username)
+        username_error = validate_useremail(username)
         if username_error:
             st.warning(username_error)
         else:
