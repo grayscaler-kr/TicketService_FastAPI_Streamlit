@@ -1,4 +1,4 @@
-name: Build and Deploy to ECR
+name: Build and Deploy to EKS via ArgoCD
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Build and Push Docker Images
+    name: Build, Push Docker Images & Deploy via ArgoCD
     runs-on: ubuntu-latest
 
     steps:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-          
+
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -50,32 +50,24 @@ jobs:
             docker push $IMAGE_TAG
           done
 
-#  jobs:
-#    build-and-push:
-#      runs-on: ubuntu-latest
-#  
-#      steps:
-#        - name: Checkout repository
-#          uses: actions/checkout@v2
-#  
-#        - name: Set up Docker Buildx
-#          uses: docker/setup-buildx-action@v2
-#  
-#        - name: Configure AWS credentials
-#          uses: aws-actions/configure-aws-credentials@v1
-#          with:
-#            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#            aws-region: ${{ secrets.AWS_REGION }}
-#  
-#        - name: Log in to Amazon ECR
-#          uses: aws-actions/amazon-ecr-login@v1
-#  
-#        - name: Build and Push Docker image
-#          env:
-#            ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-#            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-#            IMAGE_TAG: ${{ github.sha }}
-#          run: |
-#            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-#            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd-linux-amd64
+          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
+
+      - name: Login to ArgoCD
+        run: |
+          argocd login ${{ secrets.ARGOCD_SERVER }} \
+            --username ${{ secrets.ARGOCD_USERNAME }} \
+            --password ${{ secrets.ARGOCD_PASSWORD }} \
+            --insecure
+
+      - name: Sync ArgoCD Application
+        run: |
+          argocd app sync haoticket-app
+
+      - name: Wait for Deployment to Complete
+        run: |
+          argocd app wait haoticket-app
+
