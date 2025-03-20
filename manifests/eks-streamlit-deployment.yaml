@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: streamlit
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-latest
+        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-api-${{ github.sha }}
         ports:
         - name: http
           containerPort: 8501
@@ -42,8 +42,7 @@ spec:
           value: "http://reserve-service:8000/reserve/verify_user_info"
         - name: TICKET_INFO_URL
           value: "http://reserve-service:8000/reserve/ticket"
-            # imagePullPolicy: IfNotPresent
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         resources:
           requests:
             cpu: "200m"   # 최소 0.2 vCPU 사용
@@ -53,3 +52,4 @@ spec:
             memory: "512Mi"  # 최대 512MB RAM 사용
       nodeSelector:
         kubernetes.io/os: linux
+
