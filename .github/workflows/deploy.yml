@@ -50,6 +50,22 @@ jobs:
             docker push $IMAGE_TAG
           done
 
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update YAML with new image tag
+        run: |
+          TAG=${{ github.sha }}
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}
+
+          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':login-api-'$TAG'"' -i manifests/eks-login-deployment.yaml
+          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':reserve-api-'$TAG'"' -i manifests/eks-reserve-deployment.yaml
+          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':user-api-'$TAG'"' -i manifests/eks-user-deployment.yaml
+          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':streamlit-front-'$TAG'"' -i manifests/eks-streamlit-deployment.yaml
+
       - name: Install ArgoCD CLI
         run: |
           curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
