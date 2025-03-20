@@ -56,12 +56,13 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Update YAML with new image tag
+        env:
+          TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          TAG=${{ github.sha }}
-          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}
-
           echo "Updating manifests with new image tags..."
+          
           yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":login-api-" + strenv(TAG)' manifests/eks-login-deployment.yaml
           yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":reserve-api-" + strenv(TAG)' manifests/eks-reserve-deployment.yaml
           yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":user-api-" + strenv(TAG)' manifests/eks-user-deployment.yaml
