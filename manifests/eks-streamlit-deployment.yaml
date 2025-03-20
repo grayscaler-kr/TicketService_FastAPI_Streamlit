@@ -42,7 +42,7 @@ spec:
           value: "http://reserve-service:8000/reserve/verify_user_info"
         - name: TICKET_INFO_URL
           value: "http://reserve-service:8000/reserve/ticket"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         resources:
           requests:
             cpu: "200m"   # 최소 0.2 vCPU 사용

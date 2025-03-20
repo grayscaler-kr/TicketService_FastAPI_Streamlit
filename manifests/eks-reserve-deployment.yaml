@@ -38,7 +38,7 @@ spec:
           value: "worker_user"
         - name: DB_PASSWD
           value: "Dkagh1.!!"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         resources:
           requests:
             cpu: "250m"  # 최소 CPU 요청 (250m = 0.25 vCPU)
