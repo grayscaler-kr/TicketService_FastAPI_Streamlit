@@ -38,6 +38,8 @@ st.markdown('<style>div.block-container {padding-top: 3rem; padding-bottom: 1rem
 # 두 개의 열로 나누기: 첫 번째 열은 이미지, 두 번째 열은 타이틀 텍스트
 col1, col2 = st.columns([1, 4])  # 첫 번째 열은 좁고, 두 번째 열은 넓게
 
+print('------- temper --------')
+
 # 이미지 표시 (첫 번째 열에)
 with col1:
     img = Image.open(top_img_path)
