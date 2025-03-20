@@ -43,7 +43,7 @@ jobs:
 
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-latest"
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}"
 
             echo "Building and pushing $IMAGE_NAME"
             docker build -t $IMAGE_TAG $dir
