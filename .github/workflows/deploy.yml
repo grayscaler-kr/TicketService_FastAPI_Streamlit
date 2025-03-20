@@ -61,10 +61,11 @@ jobs:
           ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}
 
-          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':login-api-'$TAG'"' -i manifests/eks-login-deployment.yaml
-          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':reserve-api-'$TAG'"' -i manifests/eks-reserve-deployment.yaml
-          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':user-api-'$TAG'"' -i manifests/eks-user-deployment.yaml
-          yq eval '.spec.template.spec.containers[0].image = "'$ECR_REGISTRY'/'$ECR_REPOSITORY':streamlit-front-'$TAG'"' -i manifests/eks-streamlit-deployment.yaml
+          echo "Updating manifests with new image tags..."
+          yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":login-api-" + strenv(TAG)' manifests/eks-login-deployment.yaml
+          yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":reserve-api-" + strenv(TAG)' manifests/eks-reserve-deployment.yaml
+          yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":user-api-" + strenv(TAG)' manifests/eks-user-deployment.yaml
+          yq eval -i '.spec.template.spec.containers[0].image = strenv(ECR_REGISTRY) + "/" + strenv(ECR_REPOSITORY) + ":streamlit-front-" + strenv(TAG)' manifests/eks-streamlit-deployment.yaml
 
       - name: Install ArgoCD CLI
         run: |
