@@ -23,3 +23,4 @@ spec:
         target:
           type: Utilization
           averageUtilization: 60  # 메모리 사용량 60% 초과 시 스케일업
+

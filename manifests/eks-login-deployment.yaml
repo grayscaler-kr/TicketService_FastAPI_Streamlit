@@ -27,15 +27,17 @@ spec:
                 - arm64
       containers:
       - name: login
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/hao/ticket_service:login_auto_1
+        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:login-api-${{ github.sha }}
         ports:
         - name: http
           containerPort: 8000
         env:
         - name: DB_IP
-          value: "10.10.2.211"
+          value: "haoticketdbcluster.cluster-ro-czs4c6g4uy8h.us-west-2.rds.amazonaws.com"
+        - name: DB_USER
+          value: "worker_user"
         - name: DB_PASSWD
-          value: "P@ssw0rd!"
+          value: "Dkagh1.!!"
         imagePullPolicy: IfNotPresent
         resources:
           requests:
