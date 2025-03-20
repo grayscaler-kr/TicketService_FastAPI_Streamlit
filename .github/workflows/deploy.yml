@@ -43,7 +43,8 @@ jobs:
 
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}"
+            # IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}"
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-test"
 
             echo "Building and pushing $IMAGE_NAME"
             docker build -t $IMAGE_TAG $dir
@@ -63,10 +64,15 @@ jobs:
         run: |
           echo "Updating manifests with new image tags..."
           
-          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:login-api-$TAG\"" manifests/eks-login-deployment.yaml
-          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:reserve-api-$TAG\"" manifests/eks-reserve-deployment.yaml
-          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:user-api-$TAG\"" manifests/eks-user-deployment.yaml
-          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:streamlit-front-$TAG\"" manifests/eks-streamlit-deployment.yaml
+          # yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:login-api-$TAG\"" manifests/eks-login-deployment.yaml
+          # yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:reserve-api-$TAG\"" manifests/eks-reserve-deployment.yaml
+          # yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:user-api-$TAG\"" manifests/eks-user-deployment.yaml
+          # yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:streamlit-front-$TAG\"" manifests/eks-streamlit-deployment.yaml
+
+          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:login-api-test\"" manifests/eks-login-deployment.yaml
+          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:reserve-api-test\"" manifests/eks-reserve-deployment.yaml
+          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:user-api-test\"" manifests/eks-user-deployment.yaml
+          yq eval -i ".spec.template.spec.containers[0].image = \"$ECR_REGISTRY/$ECR_REPOSITORY:streamlit-front-test\"" manifests/eks-streamlit-deployment.yaml
 
       - name: Install ArgoCD CLI
         run: |
