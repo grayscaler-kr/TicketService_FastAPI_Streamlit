@@ -27,8 +27,7 @@ spec:
                 - arm64
       containers:
       - name: login
-        # image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:login-api-${{ github.sha }}
-        image: ""
+       image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:login-api-test
         ports:
         - name: http
           containerPort: 8000
