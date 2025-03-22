@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: reserve
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-${{ github.sha }}
+        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-test
         ports:
         - name: http
           containerPort: 8000
