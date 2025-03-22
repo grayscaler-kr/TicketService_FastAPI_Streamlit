@@ -27,7 +27,7 @@ spec:
                 - arm64
       containers:
       - name: streamlit
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-api-test
+        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-test
         ports:
         - name: http
           containerPort: 8501
