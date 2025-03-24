@@ -30,12 +30,16 @@ jobs:
 
       - name: Set timestamp
         id: timestamp
-        run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+        run: |
+          timestamp=$(date +%Y%m%d%H%M%S)
+          echo "TIMESTAMP=$timestamp" >> $GITHUB_ENV
+          echo "::set-output name=TIMESTAMP::$timestamp"
 
       - name: Build and Push Docker Images
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          TAG: ${{ github.sha  }}-${{ env.TIMESTAMP  }}
         run: |
           declare -A services
           services=(
@@ -47,7 +51,7 @@ jobs:
 
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}-${{ steps.timestamp.outputs.TIMESTAMP }}"
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-$TAG
 
             echo "Building and pushing $IMAGE_NAME"
             docker build --no-cache -t $IMAGE_TAG $dir
@@ -64,7 +68,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          TAG: ${{ github.sha }}-${{ steps.timestamp.outputs.TIMESTAMP }}
+          TAG: ${{ github.sha }}-${{ env.TIMESTAMP }}
         run: |
           echo "Updating manifests with new image tags..."
           echo "ECR_REGISTRY: $ECR_REGISTRY"
