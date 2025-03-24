@@ -112,9 +112,13 @@ jobs:
         run: |
           argocd app diff haoticket-app || echo "No changes detected"
 
+      - name: Enable auto-sync in ArgoCD
+        run: |
+          argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
+
       - name: Sync ArgoCD Application
         run: |
-          argocd app sync haoticket-app --force --hard-refresh
+          argocd app sync haoticket-app --force
 
       - name: Wait for Deployment to Complete
         run: |
