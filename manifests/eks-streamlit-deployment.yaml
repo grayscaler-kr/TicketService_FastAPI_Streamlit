@@ -14,7 +14,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0        
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -24,37 +24,36 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-                - arm64
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
       containers:
-      - name: streamlit
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-test
-        ports:
-        - name: http
-          containerPort: 8501
-        env:
-        - name: LOGIN_URL
-          value: "http://login-service:8000/login"
-        - name: USER_URL
-          value: "http://user-service:8000/user"
-        - name: RESERVE_URL
-          value: "http://reserve-service:8000/reserve"
-        - name: VERIFY_URL
-          value: "http://reserve-service:8000/reserve/verify_user_info"
-        - name: TICKET_INFO_URL
-          value: "http://reserve-service:8000/reserve/ticket"
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "200m"   # 최소 0.2 vCPU 사용
-            memory: "256Mi"  # 최소 256MB RAM 사용
-          limits:
-            cpu: "500m"   # 최대 0.5 vCPU 사용
-            memory: "512Mi"  # 최대 512MB RAM 사용
+        - name: streamlit
+          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-fb35474a90a1b7db3ae46f169153eacde2727e21
+          ports:
+            - name: http
+              containerPort: 8501
+          env:
+            - name: LOGIN_URL
+              value: "http://login-service:8000/login"
+            - name: USER_URL
+              value: "http://user-service:8000/user"
+            - name: RESERVE_URL
+              value: "http://reserve-service:8000/reserve"
+            - name: VERIFY_URL
+              value: "http://reserve-service:8000/reserve/verify_user_info"
+            - name: TICKET_INFO_URL
+              value: "http://reserve-service:8000/reserve/ticket"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "200m" # 최소 0.2 vCPU 사용
+              memory: "256Mi" # 최소 256MB RAM 사용
+            limits:
+              cpu: "500m" # 최대 0.5 vCPU 사용
+              memory: "512Mi" # 최대 512MB RAM 사용
       nodeSelector:
         kubernetes.io/os: linux
-

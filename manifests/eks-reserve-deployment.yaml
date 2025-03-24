@@ -14,7 +14,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0        
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -24,32 +24,32 @@ spec:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/arch
-                operator: In
-                values:
-                - amd64
-                - arm64
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+                      - arm64
       containers:
-      - name: reserve
-        image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-test
-        ports:
-        - name: http
-          containerPort: 8000
-        env:
-        - name: DB_IP
-          value: "haoticketdbcluster.cluster-ro-czs4c6g4uy8h.us-west-2.rds.amazonaws.com"
-        - name: DB_USER
-          value: "worker_user"
-        - name: DB_PASSWD
-          value: "Dkagh1.!!"
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "250m"  # 최소 CPU 요청 (250m = 0.25 vCPU)
-            memory: "512Mi"  # 최소 메모리 요청
-          limits:
-            cpu: "1"  # 최대 CPU 사용량 (1 vCPU)
-            memory: "1Gi"  # 최대 메모리 사용량
+        - name: reserve
+          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-fb35474a90a1b7db3ae46f169153eacde2727e21
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: DB_IP
+              value: "haoticketdbcluster.cluster-ro-czs4c6g4uy8h.us-west-2.rds.amazonaws.com"
+            - name: DB_USER
+              value: "worker_user"
+            - name: DB_PASSWD
+              value: "Dkagh1.!!"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "250m" # 최소 CPU 요청 (250m = 0.25 vCPU)
+              memory: "512Mi" # 최소 메모리 요청
+            limits:
+              cpu: "1" # 최대 CPU 사용량 (1 vCPU)
+              memory: "1Gi" # 최대 메모리 사용량
       nodeSelector:
         kubernetes.io/os: linux
