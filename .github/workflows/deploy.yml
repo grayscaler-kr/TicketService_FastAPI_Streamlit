@@ -9,9 +9,6 @@ jobs:
   deploy:
     name: Build, Push Docker Images & Deploy via ArgoCD
     runs-on: ubuntu-latest
-    env:
-      ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
 
     steps:
       - name: Checkout repository
@@ -37,8 +34,8 @@ jobs:
 
       - name: Build and Push Docker Images
         env:
-        # ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        # ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
           declare -A services
           services=(
@@ -48,11 +45,9 @@ jobs:
             ["streamlit_front"]="streamlit-front"
           )
 
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}-${{ env.TIMESTAMP }}"
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}-${{ steps.timestamp.output.TIMESTAMP }}"
 
             echo "Building and pushing $IMAGE_NAME"
             docker build --no-cache -t $IMAGE_TAG $dir
@@ -69,7 +64,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-          TAG: ${{ github.sha }}-${{ env.TIMESTAMP }}
+          TAG: ${{ github.sha }}-${{ steps.timestamp.output.TIMESTAMP }}
         run: |
           echo "Updating manifests with new image tags..."
           echo "ECR_REGISTRY: $ECR_REGISTRY"
