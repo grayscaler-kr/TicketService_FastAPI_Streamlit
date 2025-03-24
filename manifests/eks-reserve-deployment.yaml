@@ -32,7 +32,7 @@ spec:
                       - arm64
       containers:
         - name: reserve
-          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-fb977c0ff86dfa41a59b8ba112294e5520ee67b3-20250324124938
+          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:reserve-api-4b1af79e47b1e75bd6bdbe0e8a6bb2d9568680b4-20250324130506
           ports:
             - name: http
               containerPort: 8000
