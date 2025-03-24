@@ -17,9 +17,6 @@ jobs:
       - name: Set timestamp
         run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
 
-      - name: Print timestamp (디버깅용)
-        run: echo "Generated TIMESTAMP: $TIMESTAMP"
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
