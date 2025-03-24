@@ -28,12 +28,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Get current time
-        uses: josStorer/get-current-time@v2.0.2
-        id: current-time
-        with:
-          format: 'YYYY-MM-DDTHH-mm-ss'
-
       - name: Build and Push Docker Images
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -47,9 +41,11 @@ jobs:
             ["streamlit_front"]="streamlit-front"
           )
 
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}-${{ steps.current-time.outputs.time }}"
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}-$TIMESTAMP"
 
             echo "Building and pushing $IMAGE_NAME"
             docker build --no-cache -t $IMAGE_TAG $dir
