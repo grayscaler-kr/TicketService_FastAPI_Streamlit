@@ -51,7 +51,7 @@ jobs:
 
           for dir in "${!services[@]}"; do
             IMAGE_NAME=${services[$dir]}
-            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-$TAG
+            IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-$TAG"
 
             echo "Building and pushing $IMAGE_NAME"
             docker build --no-cache -t $IMAGE_TAG $dir
