@@ -46,7 +46,7 @@ jobs:
             IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}"
 
             echo "Building and pushing $IMAGE_NAME"
-            docker build -t $IMAGE_TAG $dir
+            docker build --cache-from=$IMAGE_TAG -t $IMAGE_TAG $dir
             docker push $IMAGE_TAG
           done
 
@@ -77,6 +77,16 @@ jobs:
           cat manifests/eks-user-deployment.yaml          
           cat manifests/eks-streamlit-deployment.yaml          
 
+      - name: Commit and Push Changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.email "wishcome@gmail.com"
+          git config --global user.name "grayscaler"
+          git add manifests/
+          git commit -m "Update image tags for deployment" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
+
       - name: Install ArgoCD CLI
         run: |
           curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
@@ -90,9 +100,13 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
+      - name: Check ArgoCD Diff
+        run: |
+          argocd app diff haoticket-app || echo "No changes detected"
+
       - name: Sync ArgoCD Application
         run: |
-          argocd app sync haoticket-app
+          argocd app sync haoticket-app --force
 
       - name: Wait for Deployment to Complete
         run: |
