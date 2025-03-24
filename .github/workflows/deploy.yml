@@ -46,7 +46,7 @@ jobs:
             IMAGE_TAG="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_NAME-${{ github.sha }}"
 
             echo "Building and pushing $IMAGE_NAME"
-            docker build --cache-from=$IMAGE_TAG -t $IMAGE_TAG $dir
+            docker build --no-cache -t $IMAGE_TAG $dir
             docker push $IMAGE_TAG
           done
 
