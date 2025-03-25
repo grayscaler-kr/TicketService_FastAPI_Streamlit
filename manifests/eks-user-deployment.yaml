@@ -32,7 +32,7 @@ spec:
                       - arm64
       containers:
         - name: user
-          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:user-api-5f9723deff2d02865f2c58022248c18fb87c60ac-20250325060632
+          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:user-api-4b5edc489171b4a364196e69a6a31bbefe972946-20250325070052
           ports:
             - name: http
               containerPort: 8000
