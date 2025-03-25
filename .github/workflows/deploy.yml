@@ -110,7 +110,8 @@ jobs:
 
       - name: Force ArgoCD Application Reconciliation
         run: |
-          argocd app patch haoticket-app --type merge -p '{"metadata": {"annotations": {"argocd.argoproj.io/forceReconcileAt": "'$(date +%s)'"}}}'
+          argocd app set haoticket-app \
+            --annotations "argocd.argoproj.io/refresh=hard"
 
       - name: Enable auto-sync in ArgoCD
         run: |
