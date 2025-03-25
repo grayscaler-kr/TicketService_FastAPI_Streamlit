@@ -93,6 +93,7 @@ jobs:
           git config --global user.name "grayscaler"
           git add manifests/
           git commit -m "Update image tags for deployment" || echo "No changes to commit"
+          git pull --rebase origin main
           git push origin main || echo "No changes to push"
 
       - name: Install ArgoCD CLI
