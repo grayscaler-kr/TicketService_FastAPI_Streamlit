@@ -108,6 +108,10 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
+      - name: Force Redeploy ArgoCD App
+        run: |
+          argocd app set haoticket-app --force-redeploy
+
       - name: Enable auto-sync in ArgoCD
         run: |
           argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
