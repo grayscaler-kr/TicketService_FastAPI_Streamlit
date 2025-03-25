@@ -108,11 +108,22 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
-      - name: Force ArgoCD Application Reconciliation
+      - name: Get ArgoCD Auth Token
         run: |
-          argocd app set haoticket-app \
-            --annotations "argocd.argoproj.io/refresh=hard"
+          export ARGOCD_AUTH_TOKEN=$(argocd login ${{ secrets.ARGOCD_SERVER }} \
+            --username ${{ secrets.ARGOCD_USERNAME }} \
+            --password ${{ secrets.ARGOCD_PASSWORD }} \
+            --insecure --output json | jq -r .token)
+          echo "ARGOCD_AUTH_TOKEN=$ARGOCD_AUTH_TOKEN" >> $GITHUB_ENV
 
+      - name: Force ArgoCD Application Refresh
+        run: |
+          curl -X PATCH \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $ARGOCD_AUTH_TOKEN" \
+            --data '{"metadata": {"annotations": {"argocd.argoproj.io/refresh": "hard"}}}' \
+            http://${{ secrets.ARGOCD_SERVER }}/api/v1/applications/haoticket-app
+           
       - name: Enable auto-sync in ArgoCD
         run: |
           argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
