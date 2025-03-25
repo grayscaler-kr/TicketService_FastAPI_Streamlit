@@ -108,25 +108,9 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
-      - name: Get ArgoCD Auth Token
+      - name: Set up kubectl and configure EKS access
         run: |
-          export ARGOCD_AUTH_TOKEN=$(argocd login ${{ secrets.ARGOCD_SERVER }} \
-            --username ${{ secrets.ARGOCD_USERNAME }} \
-            --password ${{ secrets.ARGOCD_PASSWORD }} \
-            --insecure --output json | jq -r .token)
-          echo "ARGOCD_AUTH_TOKEN=$ARGOCD_AUTH_TOKEN" >> $GITHUB_ENV
-
-      - name: Force ArgoCD Application Refresh
-        run: |
-          curl -X PATCH \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $ARGOCD_AUTH_TOKEN" \
-            --data '{"metadata": {"annotations": {"argocd.argoproj.io/refresh": "hard"}}}' \
-            http://${{ secrets.ARGOCD_SERVER }}/api/v1/applications/haoticket-app
-           
-      - name: Enable auto-sync in ArgoCD
-        run: |
-          argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
+          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Ensure no ongoing sync
         run: |
@@ -135,7 +119,7 @@ jobs:
             sleep 10
           done
           echo "No ongoing sync, proceeding with deployment."
-     
+
       - name: Sync ArgoCD Application
         run: |
           argocd app sync haoticket-app --force
@@ -143,4 +127,47 @@ jobs:
       - name: Wait for Deployment to Complete
         run: |
           argocd app wait haoticket-app
+          
+      - name: Restart Kubernetes Deployment
+        run: |
+          kubectl rollout restart deployment login-api -n ${{ secrets.EKS_NAMESPACE }}
+          kubectl rollout restart deployment reserve-api -n ${{ secrets.EKS_NAMESPACE }}
+          kubectl rollout restart deployment user-api -n ${{ secrets.EKS_NAMESPACE }}
+          kubectl rollout restart deployment streamlit-front -n ${{ secrets.EKS_NAMESPACE }}
+
+#      - name: Get ArgoCD Auth Token
+#        run: |
+#          export ARGOCD_AUTH_TOKEN=$(argocd login ${{ secrets.ARGOCD_SERVER }} \
+#            --username ${{ secrets.ARGOCD_USERNAME }} \
+#            --password ${{ secrets.ARGOCD_PASSWORD }} \
+#            --insecure --output json | jq -r .token)
+#          echo "ARGOCD_AUTH_TOKEN=$ARGOCD_AUTH_TOKEN" >> $GITHUB_ENV
+#
+#      - name: Force ArgoCD Application Refresh
+#        run: |
+#          curl -X PATCH \
+#            -H "Content-Type: application/json" \
+#            -H "Authorization: Bearer $ARGOCD_AUTH_TOKEN" \
+#            --data '{"metadata": {"annotations": {"argocd.argoproj.io/refresh": "hard"}}}' \
+#            http://${{ secrets.ARGOCD_SERVER }}/api/v1/applications/haoticket-app
+#           
+#      - name: Enable auto-sync in ArgoCD
+#        run: |
+#          argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
+#
+#      - name: Ensure no ongoing sync
+#        run: |
+#          while argocd app get haoticket-app | grep -q "Sync: In Progress"; do
+#            echo "Waiting for previous sync to complete..."
+#            sleep 10
+#          done
+#          echo "No ongoing sync, proceeding with deployment."
+#     
+#      - name: Sync ArgoCD Application
+#        run: |
+#          argocd app sync haoticket-app --force
+#
+#      - name: Wait for Deployment to Complete
+#        run: |
+#          argocd app wait haoticket-app
 
