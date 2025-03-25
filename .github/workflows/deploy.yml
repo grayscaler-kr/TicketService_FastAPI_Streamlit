@@ -108,9 +108,9 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
-      - name: Force Redeploy ArgoCD App
+      - name: Force ArgoCD Application Reconciliation
         run: |
-          argocd app set haoticket-app --force-redeploy
+          argocd app patch haoticket-app --type merge -p '{"metadata": {"annotations": {"argocd.argoproj.io/forceReconcileAt": "'$(date +%s)'"}}}'
 
       - name: Enable auto-sync in ArgoCD
         run: |
