@@ -64,6 +64,10 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
           yq --version
 
+      - name: Fetch latest changes
+        run: |
+          git fetch origin main
+
       - name: Update YAML with new image tag
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -93,7 +97,7 @@ jobs:
           git config --global user.name "grayscaler"
           git add manifests/
           git commit -m "Update image tags for deployment" || echo "No changes to commit"
-          git pull --rebase origin main
+          # git pull --rebase origin main
           git push origin main || echo "No changes to push"
 
       - name: Install ArgoCD CLI
