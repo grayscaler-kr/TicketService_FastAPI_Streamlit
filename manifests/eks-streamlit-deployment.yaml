@@ -32,7 +32,7 @@ spec:
                       - arm64
       containers:
         - name: streamlit
-          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-4b5edc489171b4a364196e69a6a31bbefe972946-20250325070052
+          image: 225989344665.dkr.ecr.us-west-2.amazonaws.com/grayscaler/example:streamlit-front-0a423c7282ff9c148e090793b424fe3b4c321c61-20250325073019
           ports:
             - name: http
               containerPort: 8501
