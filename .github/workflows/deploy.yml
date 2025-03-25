@@ -43,7 +43,7 @@ jobs:
         run: |
           declare -A services
           services=(
-            ["fastapi/login_api"]="login-api"
+          ["fastapi/login_api"]="login-api"
             ["fastapi/reserve_api"]="reserve-api"
             ["fastapi/user_api"]="user-api"
             ["streamlit_front"]="streamlit-front"
@@ -108,14 +108,18 @@ jobs:
             --password ${{ secrets.ARGOCD_PASSWORD }} \
             --insecure
 
-      - name: Check ArgoCD Diff
-        run: |
-          argocd app diff haoticket-app || echo "No changes detected"
-
       - name: Enable auto-sync in ArgoCD
         run: |
           argocd app set haoticket-app --sync-policy automated --auto-prune --self-heal
 
+      - name: Ensure no ongoing sync
+        run: |
+          while argocd app get haoticket-app | grep -q "Sync: In Progress"; do
+            echo "Waiting for previous sync to complete..."
+            sleep 10
+          done
+          echo "No ongoing sync, proceeding with deployment."
+     
       - name: Sync ArgoCD Application
         run: |
           argocd app sync haoticket-app --force
